@@ -70,6 +70,7 @@
             display: flex;
             background: #f8f9fa;
             border-bottom: 3px solid #667eea;
+            flex-wrap: wrap;
         }
         
         .tab {
@@ -82,6 +83,7 @@
             transition: all 0.3s;
             border: none;
             background: #f8f9fa;
+            min-width: 150px;
         }
         
         .tab:hover {
@@ -155,6 +157,25 @@
             background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
         }
         
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+        
+        .update-payment-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        
+        .update-payment-btn:hover {
+            background: #218838;
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
@@ -195,6 +216,58 @@
             padding: 5px 12px;
             border-radius: 15px;
             font-size: 0.85em;
+        }
+        
+        .badge-pending {
+            background: #ffc107;
+            color: #000;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover {
+            background: #f8f9fa;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .pending-alert {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pending-alert strong {
+            color: #856404;
+            font-size: 1.1em;
         }
         
         .summary-cards {
@@ -327,6 +400,82 @@
             border: 1px solid #f5c6cb;
         }
         
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+        }
+        
+        /* Modal للتحديث */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .modal-btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .modal-btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
         @media (max-width: 768px) {
             .grid-2, .grid-3 {
                 grid-template-columns: 1fr;
@@ -346,6 +495,7 @@
         
         <div class="tabs">
             <button class="tab active" onclick="showTab('sessions')">📝 إدخال الحصص</button>
+            <button class="tab" onclick="showTab('students')">👨‍🎓 حسابات الطلاب</button>
             <button class="tab" onclick="showTab('teachers')">💰 حسابات المدرسين</button>
             <button class="tab" onclick="showTab('manage-teachers')">👨‍🏫 إدارة المدرسين</button>
             <button class="tab" onclick="showTab('settings')">⚙️ الإعدادات</button>
@@ -415,6 +565,7 @@
                         <select id="paymentMethod" required>
                             <option value="كاش">💵 كاش</option>
                             <option value="تحويل بنكي">🏦 تحويل بنكي</option>
+                            <option value="مؤجل">⏳ مؤجل (لم يدفع بعد)</option>
                         </select>
                     </div>
                 </div>
@@ -451,6 +602,22 @@
             
             <h2 style="color: #667eea; margin-top: 40px; margin-bottom: 20px;">📋 سجل الحصص</h2>
             
+            <!-- تحذير الحصص المؤجلة -->
+            <div id="pendingAlert" class="pending-alert" style="display: none;">
+                <span style="font-size: 2em;">⚠️</span>
+                <div>
+                    <strong id="pendingCount">0 حصة مؤجلة</strong>
+                    <p style="margin: 5px 0 0 0; color: #856404;">استخدم الفلتر أدناه لعرض الحصص المؤجلة وتحديث حالة الدفع</p>
+                </div>
+            </div>
+            
+            <!-- فلتر الحصص -->
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterSessions('all')">📋 عرض الكل</button>
+                <button class="filter-btn" onclick="filterSessions('paid')">✅ مدفوع فقط</button>
+                <button class="filter-btn" onclick="filterSessions('pending')">⏳ مؤجل فقط</button>
+            </div>
+            
             <div id="sessionsLoading" class="loading" style="display:none;">
                 <div class="spinner"></div>
                 <p>جاري تحميل الحصص من Google Sheets...</p>
@@ -471,7 +638,7 @@
                             <th>نصيب المدرس</th>
                             <th>نصيب المركز</th>
                             <th>طريقة الدفع</th>
-                            <th>حذف</th>
+                            <th>إجراء</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -500,7 +667,59 @@
                     <span>🏦 إجمالي تحويل بنكي:</span>
                     <span id="totalBank">0 ر.ق</span>
                 </div>
+                <div class="summary-item">
+                    <span>⏳ إجمالي مؤجل:</span>
+                    <span id="totalPending" style="color: #ffc107;">0 ر.ق</span>
+                </div>
             </div>
+        </div>
+        
+        <!-- حسابات الطلاب -->
+        <div id="students" class="tab-content">
+            <h2 style="color: #667eea; margin-bottom: 25px;">👨‍🎓 حسابات الطلاب</h2>
+            
+            <div class="grid-2" style="margin-bottom: 30px;">
+                <div class="form-group">
+                    <label>👨‍🎓 اختر الطالب:</label>
+                    <select id="filterStudent">
+                        <option value="">جميع الطلاب</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>📅 الشهر:</label>
+                    <input type="month" id="filterStudentMonth">
+                </div>
+            </div>
+            
+            <button class="btn btn-success" onclick="calculateStudentAccount()">🧮 حساب المستحقات</button>
+            <button class="btn" onclick="window.print()" style="margin-right: 10px;">🖨️ طباعة</button>
+            
+            <div id="studentSummary"></div>
+        </div>
+        
+        <!-- حسابات المدرسين -->
+        <div id="teachers" class="tab-content">
+            <h2 style="color: #667eea; margin-bottom: 25px;">💰 حسابات المدرسين</h2>
+            
+            <div class="grid-2" style="margin-bottom: 30px;">
+                <div class="form-group">
+                    <label>👨‍🏫 اختر المدرس:</label>
+                    <select id="filterTeacher">
+                        <option value="">جميع المدرسين</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>📅 الشهر:</label>
+                    <input type="month" id="filterMonth">
+                </div>
+            </div>
+            
+            <button class="btn btn-success" onclick="calculateTeacherSalary()">🧮 حساب المستحقات</button>
+            <button class="btn" onclick="window.print()" style="margin-right: 10px;">🖨️ طباعة</button>
+            
+            <div id="teacherSummary"></div>
         </div>
         
         <!-- إدارة المدرسين -->
@@ -544,30 +763,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-        
-        <!-- حسابات المدرسين -->
-        <div id="teachers" class="tab-content">
-            <h2 style="color: #667eea; margin-bottom: 25px;">💰 حسابات المدرسين</h2>
-            
-            <div class="grid-2" style="margin-bottom: 30px;">
-                <div class="form-group">
-                    <label>👨‍🏫 اختر المدرس:</label>
-                    <select id="filterTeacher">
-                        <option value="">جميع المدرسين</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>📅 الشهر:</label>
-                    <input type="month" id="filterMonth">
-                </div>
-            </div>
-            
-            <button class="btn btn-success" onclick="calculateTeacherSalary()">🧮 حساب المستحقات</button>
-            <button class="btn" onclick="window.print()" style="margin-right: 10px;">🖨️ طباعة</button>
-            
-            <div id="teacherSummary"></div>
         </div>
         
         <!-- الإعدادات -->
@@ -629,16 +824,92 @@
             </div>
         </div>
     </div>
+    
+    <!-- Modal لتحديث طريقة الدفع -->
+    <div id="updatePaymentModal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-header">💰 تحديث طريقة الدفع</h3>
+            <p style="margin-bottom: 20px; color: #666;">الطالب دفع بأي طريقة؟</p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-primary" onclick="confirmPaymentUpdate('كاش')">💵 كاش</button>
+                <button class="modal-btn modal-btn-success" onclick="confirmPaymentUpdate('تحويل بنكي')">🏦 تحويل بنكي</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closePaymentModal()">❌ إلغاء</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // إعدادات الاتصال بـ Google Apps Script
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyafVVfmKcOCBXB_knm1XMD3fEotjtvsAKwLAEc6ykUtGbJIOnLV9m6AxM9hsmaIuE/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOwgxDK4dtY1xZtgEtUfC1MCJ-pEbh7ndHCGuwJMfdk_T6wR4s1KEL0QfVvH_jWGc/exec';
         
         // متغيرات عامة
         let sessions = [];
         let teachers = [];
         let prices = {};
         let percentages = {};
+        let currentFilter = 'all';
+        let currentSessionId = null;
+        
+        // تبديل التبويبات
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // فلتر الحصص
+        function filterSessions(filter) {
+            currentFilter = filter;
+            
+            // تحديث أزرار الفلتر
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // عرض الحصص المفلترة
+            displaySessions();
+        }
+        
+        // فتح Modal تحديث الدفع
+        function openPaymentModal(sessionId) {
+            currentSessionId = sessionId;
+            document.getElementById('updatePaymentModal').classList.add('show');
+        }
+        
+        // إغلاق Modal
+        function closePaymentModal() {
+            document.getElementById('updatePaymentModal').classList.remove('show');
+            currentSessionId = null;
+        }
+        
+        // تأكيد تحديث الدفع
+        async function confirmPaymentUpdate(newPaymentMethod) {
+            if (!currentSessionId) return;
+            
+            try {
+                await callGoogleScript('updatePaymentStatus', {
+                    sessionId: currentSessionId,
+                    paymentMethod: newPaymentMethod
+                });
+                
+                showAlert('sessionAlert', `✅ تم تحديث طريقة الدفع إلى "${newPaymentMethod}" بنجاح!`, 'success');
+                
+                closePaymentModal();
+                
+                // إعادة تحميل البيانات
+                setTimeout(() => {
+                    loadData();
+                }, 2000);
+            } catch (error) {
+                showAlert('sessionAlert', '❌ حدث خطأ أثناء تحديث طريقة الدفع.', 'error');
+                closePaymentModal();
+            }
+        }
         
         // دالة عرض الرسائل
         function showAlert(elementId, message, type = 'success') {
@@ -662,8 +933,6 @@
                     body: JSON.stringify(payload)
                 });
                 
-                // بسبب no-cors، مش هنقدر نقرا الـ response
-                // فهنفترض إن العملية نجحت
                 return { success: true };
             } catch (error) {
                 console.error('خطأ في الاتصال:', error);
@@ -671,12 +940,11 @@
             }
         }
         
-        // دالة GET بدون no-cors (مع timeout للسرعة)
+        // دالة GET بدون no-cors
         async function getFromGoogleScript(action) {
             try {
                 const url = `${SCRIPT_URL}?action=${action}&t=${Date.now()}`;
                 
-                // Timeout بعد 10 ثواني (للموبايل)
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
                 
@@ -709,12 +977,11 @@
             }
         }
         
-        // تحميل البيانات من Google Sheets (بسرعة - Parallel)
+        // تحميل البيانات من Google Sheets
         async function loadData() {
             document.getElementById('sessionsLoading').style.display = 'block';
             
             try {
-                // تحميل كل البيانات في نفس الوقت (Parallel) - أسرع!
                 const [sessionsResult, teachersResult, pricesResult, percentagesResult] = await Promise.all([
                     getFromGoogleScript('getSessions'),
                     getFromGoogleScript('getTeachers'),
@@ -722,27 +989,25 @@
                     getFromGoogleScript('getPercentages')
                 ]);
                 
-                // معالجة الحصص
                 if (sessionsResult.success) {
                     sessions = sessionsResult.data || [];
                     displaySessions();
                     updateSummary();
+                    updateStudentDropdown();
+                    updatePendingAlert();
                 }
                 
-                // معالجة المدرسين
                 if (teachersResult.success) {
                     teachers = teachersResult.data || [];
                     updateTeacherDropdowns();
                     displayTeachersList();
                 }
                 
-                // معالجة الأسعار
                 if (pricesResult.success) {
                     prices = pricesResult.data || {};
                     displayPrices();
                 }
                 
-                // معالجة النسب
                 if (percentagesResult.success) {
                     percentages = percentagesResult.data || {};
                     displayPercentages();
@@ -753,13 +1018,27 @@
                 console.error('خطأ في تحميل البيانات:', error);
                 updateConnectionStatus(false);
                 
-                // محاولة مرة أخرى بعد 3 ثواني
                 setTimeout(() => {
                     console.log('إعادة المحاولة...');
                     loadData();
                 }, 3000);
             } finally {
                 document.getElementById('sessionsLoading').style.display = 'none';
+            }
+        }
+        
+        // تحديث تحذير الحصص المؤجلة
+        function updatePendingAlert() {
+            const pendingSessions = sessions.filter(s => s.paymentMethod === 'مؤجل');
+            const pendingCount = pendingSessions.length;
+            const pendingAlert = document.getElementById('pendingAlert');
+            const pendingCountSpan = document.getElementById('pendingCount');
+            
+            if (pendingCount > 0) {
+                pendingAlert.style.display = 'flex';
+                pendingCountSpan.textContent = `⚠️ عندك ${pendingCount} حصة مؤجلة`;
+            } else {
+                pendingAlert.style.display = 'none';
             }
         }
         
@@ -818,20 +1097,62 @@
             });
         }
         
-        // عرض الحصص
+        // تحديث قائمة الطلاب
+        function updateStudentDropdown() {
+            const select = document.getElementById('filterStudent');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">جميع الطلاب</option>';
+            
+            const students = [...new Set(sessions.map(s => s.student))].sort();
+            
+            students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student;
+                option.textContent = student;
+                select.appendChild(option);
+            });
+            
+            select.value = currentValue;
+        }
+        
+        // عرض الحصص (مع الفلتر)
         function displaySessions() {
             const tbody = document.querySelector('#sessionsTable tbody');
             tbody.innerHTML = '';
             
-            if (sessions.length === 0) {
+            // فلترة الحصص حسب الخيار المحدد
+            let filteredSessions = sessions;
+            
+            if (currentFilter === 'paid') {
+                filteredSessions = sessions.filter(s => s.paymentMethod === 'كاش' || s.paymentMethod === 'تحويل بنكي');
+            } else if (currentFilter === 'pending') {
+                filteredSessions = sessions.filter(s => s.paymentMethod === 'مؤجل');
+            }
+            
+            if (filteredSessions.length === 0) {
                 const row = tbody.insertRow();
-                row.innerHTML = '<td colspan="12" style="padding: 40px; color: #999;">لا توجد حصص مسجلة بعد</td>';
+                row.innerHTML = '<td colspan="12" style="padding: 40px; color: #999;">لا توجد حصص في هذا الفلتر</td>';
                 return;
             }
             
-            sessions.slice().reverse().forEach(session => {
+            filteredSessions.slice().reverse().forEach(session => {
                 const row = tbody.insertRow();
-                const paymentIcon = session.paymentMethod === 'كاش' ? '💵' : '🏦';
+                let paymentIcon, paymentClass, actionButton;
+                
+                if (session.paymentMethod === 'كاش') {
+                    paymentIcon = '💵';
+                    paymentClass = '';
+                    actionButton = `<button class="delete-btn" onclick="deleteSession(${session.id})">🗑️</button>`;
+                } else if (session.paymentMethod === 'تحويل بنكي') {
+                    paymentIcon = '🏦';
+                    paymentClass = '';
+                    actionButton = `<button class="delete-btn" onclick="deleteSession(${session.id})">🗑️</button>`;
+                } else {
+                    paymentIcon = '⏳';
+                    paymentClass = 'badge-pending';
+                    actionButton = `<button class="update-payment-btn" onclick="openPaymentModal(${session.id})">✅ تحديث</button>`;
+                }
+                
                 row.innerHTML = `
                     <td>${session.date}</td>
                     <td>${session.teacher}</td>
@@ -843,8 +1164,8 @@
                     <td><strong>${parseFloat(session.total).toFixed(2)} ر.ق</strong></td>
                     <td><strong class="teacher-share">${parseFloat(session.teacherShare).toFixed(2)} ر.ق</strong></td>
                     <td><strong class="center-share">${parseFloat(session.centerShare).toFixed(2)} ر.ق</strong></td>
-                    <td>${paymentIcon} ${session.paymentMethod}</td>
-                    <td><button class="delete-btn" onclick="deleteSession(${session.id})">🗑️</button></td>
+                    <td><span class="${paymentClass}">${paymentIcon} ${session.paymentMethod}</span></td>
+                    <td>${actionButton}</td>
                 `;
             });
         }
@@ -856,6 +1177,7 @@
             let totalCenter = 0;
             let totalCash = 0;
             let totalBank = 0;
+            let totalPending = 0;
             
             sessions.forEach(session => {
                 const total = parseFloat(session.total);
@@ -868,8 +1190,10 @@
                 
                 if (session.paymentMethod === 'كاش') {
                     totalCash += total;
-                } else {
+                } else if (session.paymentMethod === 'تحويل بنكي') {
                     totalBank += total;
+                } else {
+                    totalPending += total;
                 }
             });
             
@@ -878,6 +1202,107 @@
             document.getElementById('totalCenter').textContent = totalCenter.toFixed(2) + ' ر.ق';
             document.getElementById('totalCash').textContent = totalCash.toFixed(2) + ' ر.ق';
             document.getElementById('totalBank').textContent = totalBank.toFixed(2) + ' ر.ق';
+            document.getElementById('totalPending').textContent = totalPending.toFixed(2) + ' ر.ق';
+        }
+        
+        // حساب حساب الطالب
+        function calculateStudentAccount() {
+            const student = document.getElementById('filterStudent').value;
+            const month = document.getElementById('filterStudentMonth').value;
+            
+            if (!student) {
+                alert('الرجاء اختيار طالب');
+                return;
+            }
+            
+            let filteredSessions = sessions.filter(s => s.student === student);
+            
+            if (month) {
+                filteredSessions = filteredSessions.filter(s => s.date.startsWith(month));
+            }
+            
+            if (filteredSessions.length === 0) {
+                document.getElementById('studentSummary').innerHTML = `
+                    <div class="alert alert-warning">لا توجد حصص للطالب ${student} في الفترة المحددة</div>
+                `;
+                return;
+            }
+            
+            let totalAmount = 0;
+            let paidAmount = 0;
+            let pendingAmount = 0;
+            let sessionsCount = 0;
+            
+            let tableHTML = `
+                <h3 style="color: #667eea; margin-top: 30px;">📊 كشف حساب الطالب: ${student}</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>المدرس</th>
+                            <th>المادة</th>
+                            <th>الساعات</th>
+                            <th>المبلغ</th>
+                            <th>حالة الدفع</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            filteredSessions.forEach(session => {
+                const total = parseFloat(session.total);
+                totalAmount += total;
+                sessionsCount++;
+                
+                let statusBadge;
+                if (session.paymentMethod === 'مؤجل') {
+                    pendingAmount += total;
+                    statusBadge = '<span class="badge-pending">⏳ مؤجل</span>';
+                } else {
+                    paidAmount += total;
+                    statusBadge = session.paymentMethod === 'كاش' ? 
+                        '<span>💵 مدفوع كاش</span>' : 
+                        '<span>🏦 مدفوع تحويل</span>';
+                }
+                
+                tableHTML += `
+                    <tr>
+                        <td>${session.date}</td>
+                        <td>${session.teacher}</td>
+                        <td>${session.subject}</td>
+                        <td>${session.hours}</td>
+                        <td><strong>${total.toFixed(2)} ر.ق</strong></td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+                
+                <div class="summary-box">
+                    <h3>💰 ملخص حساب الطالب</h3>
+                    <div class="summary-item">
+                        <span>عدد الحصص:</span>
+                        <span><strong>${sessionsCount}</strong></span>
+                    </div>
+                    <div class="summary-item">
+                        <span>إجمالي المبلغ:</span>
+                        <span><strong>${totalAmount.toFixed(2)} ر.ق</strong></span>
+                    </div>
+                    <div class="summary-item">
+                        <span>✅ المدفوع:</span>
+                        <span style="color: #28a745;"><strong>${paidAmount.toFixed(2)} ر.ق</strong></span>
+                    </div>
+                    <div class="summary-item">
+                        <span>⏳ المؤجل (المتبقي):</span>
+                        <span style="color: #ffc107;"><strong>${pendingAmount.toFixed(2)} ر.ق</strong></span>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('studentSummary').innerHTML = tableHTML;
         }
         
         // إضافة حصة
@@ -893,7 +1318,6 @@
             const hours = parseFloat(document.getElementById('hours').value);
             const discount = parseFloat(document.getElementById('discount').value) || 0;
             
-            // التحقق من السعر الخاص
             const isCustomPrice = document.getElementById('customPrice').checked;
             const manualPrice = parseFloat(document.getElementById('manualPrice').value) || 0;
             const manualPercentage = parseFloat(document.getElementById('manualPercentage').value) || 0;
@@ -901,7 +1325,6 @@
             let basePrice, total, teacherShare, centerShare, teacherPercentage;
             
             if (isCustomPrice) {
-                // استخدام السعر والنسبة اليدوية
                 basePrice = manualPrice;
                 const totalBeforeDiscount = basePrice * hours;
                 const discountAmount = totalBeforeDiscount * (discount / 100);
@@ -910,7 +1333,6 @@
                 teacherShare = total * teacherPercentage;
                 centerShare = total - teacherShare;
             } else {
-                // استخدام السعر والنسبة التلقائية
                 basePrice = prices[stage][location];
                 const totalBeforeDiscount = basePrice * hours;
                 const discountAmount = totalBeforeDiscount * (discount / 100);
@@ -943,19 +1365,24 @@
                 
                 showAlert('sessionAlert', '✅ تم إضافة الحصة بنجاح! جاري تحديث البيانات...', 'success');
                 
-                // إعادة تحميل البيانات بعد ثانيتين
                 setTimeout(() => {
                     loadData();
                 }, 2000);
                 
                 this.reset();
                 document.getElementById('sessionDate').valueAsDate = new Date();
+                document.getElementById('customPriceFields').style.display = 'none';
             } catch (error) {
                 showAlert('sessionAlert', '❌ حدث خطأ أثناء إضافة الحصة. حاول مرة أخرى.', 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = '✅ إضافة الحصة';
             }
+        });
+        
+        // Toggle custom price fields
+        document.getElementById('customPrice').addEventListener('change', function() {
+            document.getElementById('customPriceFields').style.display = this.checked ? 'block' : 'none';
         });
         
         // إضافة مدرس جديد
@@ -969,7 +1396,6 @@
                 return;
             }
             
-            // التحقق من عدم التكرار
             if (teachers.includes(teacherName)) {
                 showAlert('teacherManageAlert', '⚠️ هذا المدرس موجود بالفعل!', 'error');
                 return;
@@ -984,7 +1410,6 @@
                 
                 showAlert('teacherManageAlert', '✅ تم إضافة المدرس بنجاح! جاري تحديث القوائم...', 'success');
                 
-                // إعادة تحميل البيانات
                 setTimeout(() => {
                     loadData();
                     displayTeachersList();
@@ -1072,6 +1497,13 @@
                 filteredSessions = filteredSessions.filter(s => s.date.startsWith(month));
             }
             
+            if (filteredSessions.length === 0) {
+                document.getElementById('teacherSummary').innerHTML = `
+                    <div class="alert alert-warning">لا توجد حصص في الفترة المحددة</div>
+                `;
+                return;
+            }
+            
             const teacherData = {};
             
             filteredSessions.forEach(session => {
@@ -1083,166 +1515,58 @@
                         homeTotal: 0,
                         centerTeacherShare: 0,
                         homeTeacherShare: 0,
-                        centerCenterShare: 0,
-                        homeCenterShare: 0,
                         total: 0,
-                        teacherTotal: 0,
-                        centerTotal: 0,
-                        cashAmount: 0,
-                        bankAmount: 0
+                        teacherTotal: 0
                     };
                 }
                 
                 const data = teacherData[session.teacher];
                 const total = parseFloat(session.total);
                 const teacherShare = parseFloat(session.teacherShare);
-                const centerShare = parseFloat(session.centerShare);
                 
                 if (session.location === 'مركز') {
                     data.centerHours += parseFloat(session.hours);
                     data.centerTotal += total;
                     data.centerTeacherShare += teacherShare;
-                    data.centerCenterShare += centerShare;
                 } else {
                     data.homeHours += parseFloat(session.hours);
                     data.homeTotal += total;
                     data.homeTeacherShare += teacherShare;
-                    data.homeCenterShare += centerShare;
                 }
                 
                 data.total += total;
                 data.teacherTotal += teacherShare;
-                data.centerTotal += centerShare;
-                
-                if (session.paymentMethod === 'كاش') {
-                    data.cashAmount += total;
-                } else {
-                    data.bankAmount += total;
-                }
             });
             
-            const summary = document.getElementById('teacherSummary');
-            summary.innerHTML = '';
-            
-            if (Object.keys(teacherData).length === 0) {
-                summary.innerHTML = '<p style="text-align: center; padding: 40px; color: #999;">لا توجد حصص للعرض</p>';
-                return;
-            }
+            let summaryHTML = '<h3 style="color: #667eea; margin-top: 30px;">📊 ملخص حسابات المدرسين</h3>';
             
             Object.entries(teacherData).forEach(([teacherName, data]) => {
-                summary.innerHTML += `
-                    <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; margin-top: 20px;">
-                        <h3 style="color: #667eea; margin-bottom: 20px;">👨‍🏫 ${teacherName}</h3>
-                        
-                        <div class="summary-cards">
-                            <div class="card" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
-                                <h3>في المركز</h3>
-                                <div class="value">${data.centerHours.toFixed(1)} ساعة</div>
-                                <p style="margin-top: 10px; opacity: 0.9;">الإجمالي: ${data.centerTotal.toFixed(2)} ر.ق</p>
-                            </div>
-                            
-                            <div class="card" style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);">
-                                <h3>في المنزل</h3>
-                                <div class="value">${data.homeHours.toFixed(1)} ساعة</div>
-                                <p style="margin-top: 10px; opacity: 0.9;">الإجمالي: ${data.homeTotal.toFixed(2)} ر.ق</p>
-                            </div>
-                            
-                            <div class="card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                                <h3>إجمالي المستحقات</h3>
-                                <div class="value">${data.total.toFixed(2)} ر.ق</div>
-                                <p style="margin-top: 10px; opacity: 0.9;">${(data.centerHours + data.homeHours).toFixed(1)} ساعة</p>
-                            </div>
+                summaryHTML += `
+                    <div class="summary-box" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
+                        <h3>👨‍🏫 ${teacherName}</h3>
+                        <div class="summary-item">
+                            <span>🏢 حصص المركز:</span>
+                            <span>${data.centerHours} ساعة - ${data.centerTotal.toFixed(2)} ر.ق</span>
                         </div>
-                        
-                        <table style="margin-top: 20px;">
-                            <thead>
-                                <tr>
-                                    <th>التفاصيل</th>
-                                    <th>في المركز</th>
-                                    <th>في المنزل</th>
-                                    <th>الإجمالي</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>عدد الساعات</strong></td>
-                                    <td>${data.centerHours.toFixed(1)}</td>
-                                    <td>${data.homeHours.toFixed(1)}</td>
-                                    <td><strong>${(data.centerHours + data.homeHours).toFixed(1)}</strong></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>إجمالي الحصص</strong></td>
-                                    <td>${data.centerTotal.toFixed(2)} ر.ق</td>
-                                    <td>${data.homeTotal.toFixed(2)} ر.ق</td>
-                                    <td><strong>${data.total.toFixed(2)} ر.ق</strong></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>نصيب المدرس</strong></td>
-                                    <td class="teacher-share">${data.centerTeacherShare.toFixed(2)} ر.ق (60%)</td>
-                                    <td class="teacher-share">${data.homeTeacherShare.toFixed(2)} ر.ق (70%)</td>
-                                    <td><strong class="teacher-share" style="font-size: 1.2em;">${data.teacherTotal.toFixed(2)} ر.ق</strong></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>نصيب المركز</strong></td>
-                                    <td class="center-share">${data.centerCenterShare.toFixed(2)} ر.ق (40%)</td>
-                                    <td class="center-share">${data.homeCenterShare.toFixed(2)} ر.ق (30%)</td>
-                                    <td><strong class="center-share" style="font-size: 1.2em;">${data.centerTotal.toFixed(2)} ر.ق</strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        
-                        <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 8px;">
-                            <h4 style="color: #667eea; margin-bottom: 10px;">💳 طرق الدفع:</h4>
-                            <p>💵 كاش: <strong>${data.cashAmount.toFixed(2)} ر.ق</strong></p>
-                            <p>🏦 تحويل بنكي: <strong>${data.bankAmount.toFixed(2)} ر.ق</strong></p>
+                        <div class="summary-item">
+                            <span>🏠 حصص المنزل:</span>
+                            <span>${data.homeHours} ساعة - ${data.homeTotal.toFixed(2)} ر.ق</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>💰 إجمالي نصيب المدرس:</span>
+                            <span><strong>${data.teacherTotal.toFixed(2)} ر.ق</strong></span>
                         </div>
                     </div>
                 `;
             });
-        }
-        
-        // تبديل التابات
-        function showTab(tabName) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            event.target.classList.add('active');
-            document.getElementById(tabName).classList.add('active');
+            document.getElementById('teacherSummary').innerHTML = summaryHTML;
         }
         
-        // إظهار/إخفاء حقول السعر الخاص
+        // تعيين تاريخ اليوم عند التحميل
         document.addEventListener('DOMContentLoaded', function() {
-            const customPriceCheckbox = document.getElementById('customPrice');
-            const customPriceFields = document.getElementById('customPriceFields');
-            const manualPrice = document.getElementById('manualPrice');
-            const manualPercentage = document.getElementById('manualPercentage');
-            
-            customPriceCheckbox.addEventListener('change', function() {
-                if (this.checked) {
-                    customPriceFields.style.display = 'block';
-                    manualPrice.required = true;
-                    manualPercentage.required = true;
-                } else {
-                    customPriceFields.style.display = 'none';
-                    manualPrice.required = false;
-                    manualPercentage.required = false;
-                    manualPrice.value = '';
-                    manualPercentage.value = '';
-                }
-            });
-            
-            // تعيين التاريخ الحالي
             document.getElementById('sessionDate').valueAsDate = new Date();
-            
-            // تعيين الشهر الحالي
-            const now = new Date();
-            document.getElementById('filterMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            
-            // تحميل البيانات
             loadData();
-            
-            // تحديث البيانات كل 30 ثانية
-            setInterval(loadData, 30000);
         });
     </script>
 </body>
